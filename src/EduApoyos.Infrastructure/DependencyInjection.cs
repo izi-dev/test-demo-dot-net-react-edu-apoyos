@@ -26,8 +26,10 @@ public static class DependencyInjection
             options.UseNpgsql(connectionString));
 
 
+        // AddIdentityCore (sin cookies): la API solo autentica con JWT.
+        // AddIdentity registraría cookies y redirigiría a /Account/Login.
         services
-            .AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
+            .AddIdentityCore<ApplicationUser>(options =>
             {
                 options.Password.RequiredLength = 8;
                 options.Password.RequireDigit = true;
@@ -36,6 +38,7 @@ public static class DependencyInjection
                 options.Password.RequireNonAlphanumeric = true;
                 options.User.RequireUniqueEmail = true;
             })
+            .AddRoles<IdentityRole<Guid>>()
             .AddEntityFrameworkStores<EduApoyosDbContext>()
             .AddDefaultTokenProviders();
 
