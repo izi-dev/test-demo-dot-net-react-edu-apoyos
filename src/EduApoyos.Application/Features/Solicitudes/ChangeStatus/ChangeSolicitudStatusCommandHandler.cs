@@ -33,6 +33,7 @@ public sealed class ChangeSolicitudStatusCommandValidator : AbstractValidator<Ch
 /// </summary>
 public sealed class ChangeSolicitudStatusCommandHandler(
     ISolicitudRepository solicitudes,
+    IUsuarioRepository usuarios,
     IUnitOfWork unitOfWork,
     IValidator<ChangeSolicitudStatusCommand> validator) : ICommandHandler<ChangeSolicitudStatusCommand, SolicitudDto>
 {
@@ -42,6 +43,11 @@ public sealed class ChangeSolicitudStatusCommandHandler(
 
         var solicitud = await solicitudes.ObtenerPorIdConDetalleAsync(command.SolicitudId, cancellationToken)
             ?? throw new RecursoNoEncontradoException("solicitud", command.SolicitudId);
+
+        // Hay que cargar el asesor en el DbContext antes de asignar AsesorId + Historial.UsuarioId
+        // (mismo Guid). Si no, EF crea dos stubs y falla el SaveChanges.
+        _ = await usuarios.ObtenerPorIdAsync(command.AsesorId, cancellationToken)
+            ?? throw new RecursoNoEncontradoException("usuario", command.AsesorId);
 
         solicitud.CambiarEstado(
             nuevoEstado: command.Estado,

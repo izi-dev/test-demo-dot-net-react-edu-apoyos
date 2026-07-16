@@ -38,7 +38,11 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Ex
             TransicionEstadoInvalidaException => (StatusCodes.Status400BadRequest, "Transición inválida", exception.Message, null),
             DomainException => (StatusCodes.Status400BadRequest, "Regla de negocio", exception.Message, null),
             UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, "No autorizado", exception.Message, null),
-            _ => (StatusCodes.Status500InternalServerError, "Error interno", "Ocurrió un error inesperado.", null)
+            _ => (
+                StatusCodes.Status500InternalServerError,
+                "Error interno",
+                exception.InnerException?.Message ?? exception.Message,
+                null)
         };
 
         context.Response.StatusCode = status;

@@ -256,8 +256,26 @@ public class SolicitudHandlerTests
 
     private static ChangeSolicitudStatusCommandHandler BuildChangeHandler(
         Mock<ISolicitudRepository> solicitudRepository,
-        Mock<IUnitOfWork> unitOfWork) =>
-        new(solicitudRepository.Object, unitOfWork.Object, new ChangeSolicitudStatusCommandValidator());
+        Mock<IUnitOfWork> unitOfWork)
+    {
+        var usuarioRepository = new Mock<IUsuarioRepository>();
+        usuarioRepository
+            .Setup(x => x.ObtenerPorIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Guid id, CancellationToken _) => new Usuario
+            {
+                Id = id,
+                NombreCompleto = "Asesor",
+                Email = "asesor@example.com",
+                PasswordHash = "hash",
+                Rol = RolUsuario.Asesor
+            });
+
+        return new(
+            solicitudRepository.Object,
+            usuarioRepository.Object,
+            unitOfWork.Object,
+            new ChangeSolicitudStatusCommandValidator());
+    }
 
     private static Estudiante BuildEstudiante()
     {
