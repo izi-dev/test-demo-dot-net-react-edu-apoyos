@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using EduApoyos.Api.Middleware;
 using EduApoyos.Application;
 using EduApoyos.Infrastructure;
@@ -16,7 +17,11 @@ var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? ne
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddProblemDetails();
-builder.Services.AddControllers();
+
+// Serializar enums como texto (Asesor, Pendiente, Beca...) tal como espera el frontend.
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 builder.Services.AddCors(options =>
 {
@@ -78,7 +83,6 @@ if (!app.Environment.IsEnvironment("Testing"))
 
 app.UseSwagger();
 app.UseSwaggerUI();
-app.UseHttpsRedirection();
 app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
