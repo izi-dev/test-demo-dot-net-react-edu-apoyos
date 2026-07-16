@@ -11,8 +11,9 @@ services:
       Jwt__Key: ${JWT_KEY:-clave-desarrollo-educapoyos-1234567890}
       Jwt__ExpireMinutes: ${JWT_EXPIRE_MINUTES:-120}
       Cors__AllowedOrigins__0: ${FRONTEND_ORIGIN:-http://localhost:8080}
-    ports:
-      - "${API_PORT:-5000}:8080"
+    # Traefik enruta por la red compartida; no hace falta publicar al host.
+    expose:
+      - "8080"
     networks:
       - default
       - dokploy-network
@@ -26,10 +27,11 @@ services:
         VITE_API_URL: ""
     depends_on:
       - api
-    ports:
-      - "${FRONTEND_PORT:-8080}:80"
+    expose:
+      - "80"
     networks:
       - default
+      - dokploy-network
     restart: unless-stopped
 
   # Solo desarrollo local: docker compose --profile local up --build
@@ -49,7 +51,6 @@ services:
     restart: unless-stopped
 
 networks:
-  # Misma red externa que usa la base gestionada (igual que en el compose de Laravel).
   dokploy-network:
     external: true
 
