@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile.api
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
-      ConnectionStrings__Default: ${CONNECTION_STRING:?Define CONNECTION_STRING apuntando a tu PostgreSQL}
+      ConnectionStrings__Default: ${CONNECTION_STRING:?Define CONNECTION_STRING}
       Jwt__Issuer: ${JWT_ISSUER:-EduApoyos}
       Jwt__Audience: ${JWT_AUDIENCE:-EduApoyos}
       Jwt__Key: ${JWT_KEY:-clave-desarrollo-educapoyos-1234567890}
@@ -13,6 +13,9 @@ services:
       Cors__AllowedOrigins__0: ${FRONTEND_ORIGIN:-http://localhost:8080}
     ports:
       - "${API_PORT:-5000}:8080"
+    networks:
+      - default
+      - dokploy-network
     restart: unless-stopped
 
   frontend:
@@ -25,6 +28,8 @@ services:
       - api
     ports:
       - "${FRONTEND_PORT:-8080}:80"
+    networks:
+      - default
     restart: unless-stopped
 
   # Solo desarrollo local: docker compose --profile local up --build
@@ -39,7 +44,14 @@ services:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - educapoyos-postgres:/var/lib/postgresql/data
+    networks:
+      - default
     restart: unless-stopped
+
+networks:
+  # Misma red externa que usa la base gestionada (igual que en el compose de Laravel).
+  dokploy-network:
+    external: true
 
 volumes:
   educapoyos-postgres:

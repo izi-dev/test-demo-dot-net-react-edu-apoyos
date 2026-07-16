@@ -17,16 +17,14 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        // Preferir ConnectionStrings__Default; aceptar también CONNECTION_STRING (común en paneles PaaS).
-        var connectionString = configuration.GetConnectionString("Default")
-            ?? configuration["CONNECTION_STRING"]
-            ?? throw new InvalidOperationException(
-                "No hay cadena de conexión. Define ConnectionStrings__Default o CONNECTION_STRING.");
+        var connectionString = ResolveConnectionString(configuration)
+            ?? throw new InvalidOperationException("Falta CONNECTION_STRING.");
 
         services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
 
         services.AddDbContext<EduApoyosDbContext>(options =>
             options.UseNpgsql(connectionString));
+
 
         services
             .AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
@@ -50,5 +48,19 @@ public static class DependencyInjection
         services.AddScoped<DataSeeder>();
 
         return services;
+    }
+
+    private static string? ResolveConnectionString(IConfiguration configuration)
+    {
+        var raw = configuration.GetConnectionString("Default")
+            ?? configuration["CONNECTION_STRING"];
+
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return null;
+        }
+
+        // Algunos paneles dejan comillas literales alrededor del valor.
+        return raw.Trim().Trim('"').Trim('\'');
     }
 }
