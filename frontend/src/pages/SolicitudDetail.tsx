@@ -2,12 +2,27 @@
  * Vista de detalle de una solicitud con historial y acciones según el rol.
  */
 
-import { useEffect, useState } from 'react'
+import { isAxiosError } from 'axios'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { descargarConstancia } from '../api/constancia'
 import { useAuth } from '../auth/AuthContext'
 import type { EstadoSolicitud, Solicitud } from '../types'
+
+const TRANSICIONES: Record<EstadoSolicitud, EstadoSolicitud[]> = {
+  Pendiente: ['EnRevision'],
+  EnRevision: ['Aprobada', 'Rechazada'],
+  Aprobada: [],
+  Rechazada: [],
+}
+
+const ETIQUETAS: Record<EstadoSolicitud, string> = {
+  Pendiente: 'Pendiente',
+  EnRevision: 'En revisión',
+  Aprobada: 'Aprobada',
+  Rechazada: 'Rechazada',
+}
 
 /**
  * Muestra la información completa de una solicitud.
@@ -17,30 +32,55 @@ export function SolicitudDetail() {
   const { auth } = useAuth()
   const { id } = useParams()
   const [solicitud, setSolicitud] = useState<Solicitud | null>(null)
-  const [estado, setEstado] = useState<EstadoSolicitud>('EnRevision')
+  const [estado, setEstado] = useState<EstadoSolicitud | ''>('')
   const [observacion, setObservacion] = useState('')
   const [descargando, setDescargando] = useState(false)
+  const [actualizando, setActualizando] = useState(false)
   const [error, setError] = useState('')
+
+  const siguientes = useMemo(
+    () => (solicitud ? TRANSICIONES[solicitud.estado] : []),
+    [solicitud],
+  )
 
   useEffect(() => {
     if (!id) {
       return
     }
 
-    api.get<Solicitud>(`/api/solicitudes/${id}`).then((response) => setSolicitud(response.data))
+    api.get<Solicitud>(`/api/solicitudes/${id}`).then((response) => {
+      setSolicitud(response.data)
+      const opciones = TRANSICIONES[response.data.estado]
+      setEstado(opciones[0] ?? '')
+    })
   }, [id])
 
   async function cambiarEstado() {
-    if (!id) {
+    if (!id || !estado) {
       return
     }
 
-    const { data } = await api.patch<Solicitud>(`/api/solicitudes/${id}/estado`, {
-      estado,
-      observacion,
-    })
-    setSolicitud(data)
-    setObservacion('')
+    setActualizando(true)
+    setError('')
+    try {
+      const { data } = await api.patch<Solicitud>(`/api/solicitudes/${id}/estado`, {
+        estado,
+        observacion: observacion || null,
+      })
+      setSolicitud(data)
+      setObservacion('')
+      const opciones = TRANSICIONES[data.estado]
+      setEstado(opciones[0] ?? '')
+    } catch (err) {
+      if (isAxiosError(err)) {
+        const detail = err.response?.data?.detail as string | undefined
+        setError(detail ?? 'No se pudo actualizar el estado.')
+      } else {
+        setError('No se pudo actualizar el estado.')
+      }
+    } finally {
+      setActualizando(false)
+    }
   }
 
   async function handleDescargarConstancia() {
@@ -71,7 +111,7 @@ export function SolicitudDetail() {
           <h1>{solicitud.nombreEstudiante}</h1>
         </div>
         <div className="header-actions">
-          <span className={`status ${solicitud.estado}`}>{solicitud.estado}</span>
+          <span className={`status ${solicitud.estado}`}>{ETIQUETAS[solicitud.estado]}</span>
           {auth?.rol === 'Estudiante' && (
             <button
               type="button"
@@ -100,22 +140,30 @@ export function SolicitudDetail() {
         {auth?.rol === 'Asesor' && (
           <aside className="panel form-panel">
             <h2>Cambiar estado</h2>
-            <select
-              value={estado}
-              onChange={(event) => setEstado(event.target.value as EstadoSolicitud)}
-            >
-              <option value="EnRevision">En revisión</option>
-              <option value="Aprobada">Aprobada</option>
-              <option value="Rechazada">Rechazada</option>
-            </select>
-            <textarea
-              placeholder="Observación"
-              value={observacion}
-              onChange={(event) => setObservacion(event.target.value)}
-            />
-            <button type="button" onClick={cambiarEstado}>
-              Actualizar
-            </button>
+            {siguientes.length === 0 ? (
+              <p>Esta solicitud ya está cerrada y no admite más cambios.</p>
+            ) : (
+              <>
+                <select
+                  value={estado}
+                  onChange={(event) => setEstado(event.target.value as EstadoSolicitud)}
+                >
+                  {siguientes.map((opcion) => (
+                    <option key={opcion} value={opcion}>
+                      {ETIQUETAS[opcion]}
+                    </option>
+                  ))}
+                </select>
+                <textarea
+                  placeholder="Observación"
+                  value={observacion}
+                  onChange={(event) => setObservacion(event.target.value)}
+                />
+                <button type="button" disabled={actualizando || !estado} onClick={cambiarEstado}>
+                  {actualizando ? 'Actualizando...' : 'Actualizar'}
+                </button>
+              </>
+            )}
           </aside>
         )}
       </div>
@@ -124,7 +172,8 @@ export function SolicitudDetail() {
         {solicitud.historial.map((item) => (
           <p key={item.id}>
             {new Date(item.fechaCambio).toLocaleString('es-CO')} —{' '}
-            {item.estadoAnterior ?? 'Creación'} → {item.estadoNuevo}: {item.observacion}
+            {item.estadoAnterior ? ETIQUETAS[item.estadoAnterior] : 'Creación'} →{' '}
+            {ETIQUETAS[item.estadoNuevo]}: {item.observacion}
           </p>
         ))}
       </section>
