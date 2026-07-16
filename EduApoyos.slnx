@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/EduApoyos.Api/EduApoyos.Api.csproj" />
+    <Project Path="src/EduApoyos.Application/EduApoyos.Application.csproj" />
+    <Project Path="src/EduApoyos.Domain/EduApoyos.Domain.csproj" />
+    <Project Path="src/EduApoyos.Infrastructure/EduApoyos.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/EduApoyos.Application.Tests/EduApoyos.Application.Tests.csproj" />
+  </Folder>
+</Solution>
