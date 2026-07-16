@@ -83,6 +83,12 @@ public class SolicitudApoyo
     }
 
     /// <summary>
+    /// Devuelve el último registro de historial (el más reciente por fecha).
+    /// </summary>
+    public HistorialEstado? UltimoHistorial() =>
+        Historial.OrderByDescending(x => x.FechaCambio).FirstOrDefault();
+
+    /// <summary>
     /// Evalúa si la transición al estado destino está permitida.
     /// </summary>
     public bool PuedeCambiarA(EstadoSolicitud nuevoEstado) =>

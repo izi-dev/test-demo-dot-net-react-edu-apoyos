@@ -1,6 +1,7 @@
 using EduApoyos.Application.Common;
 using EduApoyos.Application.Ports;
 using EduApoyos.Domain.Entities;
+using EduApoyos.Domain.Exceptions;
 using EduApoyos.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -56,6 +57,33 @@ public sealed class SolicitudRepository(EduApoyosDbContext context) : ISolicitud
 
     public async Task AgregarAsync(SolicitudApoyo solicitud, CancellationToken cancellationToken = default) =>
         await context.SolicitudesApoyo.AddAsync(solicitud, cancellationToken);
+
+    public async Task PersistirCambioEstadoAsync(
+        SolicitudApoyo solicitud,
+        HistorialEstado nuevoHistorial,
+        CancellationToken cancellationToken = default)
+    {
+        // Actualización escalar: evita el grafo Asesor/Usuario/Historial del change tracker.
+        var actualizadas = await context.SolicitudesApoyo
+            .Where(x => x.Id == solicitud.Id)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(x => x.Estado, solicitud.Estado)
+                    .SetProperty(x => x.FechaActualizacion, solicitud.FechaActualizacion)
+                    .SetProperty(x => x.AsesorId, solicitud.AsesorId),
+                cancellationToken);
+
+        if (actualizadas == 0)
+        {
+            throw new RecursoNoEncontradoException("solicitud", solicitud.Id);
+        }
+
+        // El change tracker puede haber marcado la solicitud/historial al mutar el agregado.
+        // Limpiamos y solo insertamos el nuevo historial.
+        context.ChangeTracker.Clear();
+        await context.HistorialEstados.AddAsync(nuevoHistorial, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+    }
 
     private IQueryable<SolicitudApoyo> QueryConDetalle() =>
         context.SolicitudesApoyo

@@ -13,6 +13,12 @@ public interface ISolicitudRepository
     Task<PagedResult<SolicitudApoyo>> ListarAsync(FiltroSolicitudes filtro, CancellationToken cancellationToken = default);
     Task<IReadOnlyCollection<SolicitudApoyo>> ListarPorEstudianteAsync(Guid estudianteId, CancellationToken cancellationToken = default);
     Task AgregarAsync(SolicitudApoyo solicitud, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Persiste un cambio de estado sin depender del grafo de navegación de EF
+    /// (evita conflictos de tracking entre Asesor e Historial).
+    /// </summary>
+    Task PersistirCambioEstadoAsync(SolicitudApoyo solicitud, HistorialEstado nuevoHistorial, CancellationToken cancellationToken = default);
 }
 
 /// <summary>

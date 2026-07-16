@@ -34,7 +34,6 @@ public sealed class ChangeSolicitudStatusCommandValidator : AbstractValidator<Ch
 public sealed class ChangeSolicitudStatusCommandHandler(
     ISolicitudRepository solicitudes,
     IUsuarioRepository usuarios,
-    IUnitOfWork unitOfWork,
     IValidator<ChangeSolicitudStatusCommand> validator) : ICommandHandler<ChangeSolicitudStatusCommand, SolicitudDto>
 {
     public async Task<SolicitudDto> HandleAsync(ChangeSolicitudStatusCommand command, CancellationToken cancellationToken = default)
@@ -44,8 +43,6 @@ public sealed class ChangeSolicitudStatusCommandHandler(
         var solicitud = await solicitudes.ObtenerPorIdConDetalleAsync(command.SolicitudId, cancellationToken)
             ?? throw new RecursoNoEncontradoException("solicitud", command.SolicitudId);
 
-        // Hay que cargar el asesor en el DbContext antes de asignar AsesorId + Historial.UsuarioId
-        // (mismo Guid). Si no, EF crea dos stubs y falla el SaveChanges.
         _ = await usuarios.ObtenerPorIdAsync(command.AsesorId, cancellationToken)
             ?? throw new RecursoNoEncontradoException("usuario", command.AsesorId);
 
@@ -55,8 +52,15 @@ public sealed class ChangeSolicitudStatusCommandHandler(
             observacion: command.Observacion,
             asesorId: command.AsesorId);
 
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        var nuevoHistorial = solicitud.UltimoHistorial()
+            ?? throw new InvalidOperationException("El cambio de estado no generó historial.");
 
-        return SolicitudMapper.ToDto(solicitud);
+        await solicitudes.PersistirCambioEstadoAsync(solicitud, nuevoHistorial, cancellationToken);
+
+        // Tras Clear() del change tracker, recargar para devolver el DTO completo.
+        var actualizada = await solicitudes.ObtenerPorIdConDetalleAsync(command.SolicitudId, cancellationToken)
+            ?? throw new RecursoNoEncontradoException("solicitud", command.SolicitudId);
+
+        return SolicitudMapper.ToDto(actualizada);
     }
 }

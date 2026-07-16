@@ -58,8 +58,11 @@ public class SolicitudHandlerTests
         solicitudRepository
             .Setup(x => x.ObtenerPorIdConDetalleAsync(solicitud.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(solicitud);
+        solicitudRepository
+            .Setup(x => x.PersistirCambioEstadoAsync(It.IsAny<SolicitudApoyo>(), It.IsAny<HistorialEstado>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
 
-        var handler = BuildChangeHandler(solicitudRepository, new Mock<IUnitOfWork>());
+        var handler = BuildChangeHandler(solicitudRepository);
 
         var result = await handler.HandleAsync(new ChangeSolicitudStatusCommand(
             solicitud.Id, EstadoSolicitud.EnRevision, "Documentos completos", asesorId));
@@ -83,7 +86,7 @@ public class SolicitudHandlerTests
             .Setup(x => x.ObtenerPorIdConDetalleAsync(solicitud.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(solicitud);
 
-        var handler = BuildChangeHandler(solicitudRepository, new Mock<IUnitOfWork>());
+        var handler = BuildChangeHandler(solicitudRepository);
 
         await Assert.ThrowsAsync<TransicionEstadoInvalidaException>(() => handler.HandleAsync(
             new ChangeSolicitudStatusCommand(solicitud.Id, EstadoSolicitud.Aprobada, "Salto", Guid.NewGuid())));
@@ -255,8 +258,7 @@ public class SolicitudHandlerTests
         new(solicitudRepository.Object, estudianteRepository.Object, unitOfWork.Object, new CreateSolicitudCommandValidator());
 
     private static ChangeSolicitudStatusCommandHandler BuildChangeHandler(
-        Mock<ISolicitudRepository> solicitudRepository,
-        Mock<IUnitOfWork> unitOfWork)
+        Mock<ISolicitudRepository> solicitudRepository)
     {
         var usuarioRepository = new Mock<IUsuarioRepository>();
         usuarioRepository
@@ -273,7 +275,6 @@ public class SolicitudHandlerTests
         return new(
             solicitudRepository.Object,
             usuarioRepository.Object,
-            unitOfWork.Object,
             new ChangeSolicitudStatusCommandValidator());
     }
 
