@@ -9,6 +9,7 @@ Monorepo con **.NET 8** (Clean Architecture) y **React + Vite**, con Docker Comp
 Aplicación desplegada:
 
 - **Frontend:** [https://fvargas.dezeo.cloud/](https://fvargas.dezeo.cloud/)
+- **Swagger (API):** [https://fvargas.dezeo.cloud/swagger](https://fvargas.dezeo.cloud/swagger)
 - **API (login):** `https://fvargas.dezeo.cloud/api/auth/login`
 
 Credenciales de prueba (mismas del seed):
@@ -189,6 +190,22 @@ En la carpeta `sql/` (adaptado a PostgreSQL):
 1. `01_solicitudes_pendientes_sin_actualizacion.sql`: pendientes con más de 5 días sin actualización, por antigüedad.
 2. `02_conteo_por_estado_y_tipo_ultimo_mes.sql`: conteo por estado y tipo en el último mes.
 3. `03_indice_no_agrupado_solicitudes.sql`: índice compuesto justificado sobre `SolicitudesApoyo` (también creado por EF Core en la migración inicial).
+
+## Documentación del código
+
+Todo el código fuente está documentado en español:
+
+| Capa | Formato | Qué incluye |
+|------|---------|-------------|
+| **Domain** | XML (`///`) | Entidades, enums, value objects, excepciones; reglas de validación en `<remarks>` |
+| **Application** | XML | Puertos, handlers, DTOs; cada `RuleFor` de FluentValidation documentado |
+| **Infrastructure / API** | XML | Repositorios, Identity, JWT, controladores (roles y códigos HTTP) |
+| **Frontend** | JSDoc | Componentes, tipos, validaciones de formulario y llamadas API |
+| **Tests** | XML | Cada `[Fact]` describe el escenario que valida |
+
+Al compilar, los proyectos .NET generan archivos `.xml` de documentación (`GenerateDocumentationFile`). En el IDE, pasa el cursor sobre tipos y métodos para ver la documentación inline.
+
+Ejemplo de puerto documentado: `src/EduApoyos.Application/Ports/ISolicitudRepository.cs` (cada método con `summary`, `param`, `returns` y `remarks` de comportamiento).
 
 ## CI/CD
 
