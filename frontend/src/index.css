@@ -1,15 +1,32 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=Manrope:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=Outfit:wght@400;500;600;700&display=swap');
 
 :root {
-  --ink: #17211f;
-  --muted: #62706b;
-  --surface: #f7faf8;
-  --line: #dbe5df;
-  --green: #1c6758;
-  --display: 'Fraunces', Georgia, serif;
-  --sans: 'Manrope', sans-serif;
+  --ink: #12201d;
+  --ink-soft: #2a3d38;
+  --muted: #5f726c;
+  --surface: #f3f7f5;
+  --surface-elevated: #ffffff;
+  --line: #d5e0db;
+  --line-strong: #b7c8c1;
+  --accent: #0b6e63;
+  --accent-deep: #08554d;
+  --accent-soft: #d8efe9;
+  --warn: #8a5a12;
+  --warn-soft: #f7ecd4;
+  --danger: #8f2f2f;
+  --danger-soft: #f8e4e4;
+  --ok: #146347;
+  --ok-soft: #dff3ea;
+  --pending: #3d5a6c;
+  --pending-soft: #e4eef3;
+  --display: 'Lora', Georgia, serif;
+  --sans: 'Outfit', sans-serif;
+  --radius: 12px;
+  --shadow-soft: 0 1px 0 rgba(18, 32, 29, 0.04);
 
   font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.5;
   color: var(--ink);
   background: var(--surface);
   font-synthesis: none;
@@ -18,8 +35,15 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
+  min-height: 100vh;
 }
 
 h1,
@@ -27,13 +51,51 @@ h2,
 h3 {
   font-family: var(--display);
   color: var(--ink);
+  line-height: 1.15;
+  font-weight: 700;
 }
 
 a {
   color: inherit;
 }
 
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
 button:disabled {
-  opacity: 0.6;
-  cursor: progress;
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }

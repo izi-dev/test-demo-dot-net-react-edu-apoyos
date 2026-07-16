@@ -4,25 +4,21 @@
 
 import { isAxiosError } from 'axios'
 import { useEffect, useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { descargarConstancia } from '../api/constancia'
+import { StatusBadge } from '../components/StatusBadge'
 import { useAuth } from '../auth/AuthContext'
+import {
+  ETIQUETA_ESTADO,
+  ETIQUETA_TIPO,
+  TRANSICIONES,
+  formatearFechaHora,
+  formatearMonto,
+} from '../lib/labels'
 import type { EstadoSolicitud, Solicitud } from '../types'
 
-const TRANSICIONES: Record<EstadoSolicitud, EstadoSolicitud[]> = {
-  Pendiente: ['EnRevision'],
-  EnRevision: ['Aprobada', 'Rechazada'],
-  Aprobada: [],
-  Rechazada: [],
-}
-
-const ETIQUETAS: Record<EstadoSolicitud, string> = {
-  Pendiente: 'Pendiente',
-  EnRevision: 'En revisión',
-  Aprobada: 'Aprobada',
-  Rechazada: 'Rechazada',
-}
+const FLUJO: EstadoSolicitud[] = ['Pendiente', 'EnRevision', 'Aprobada']
 
 /**
  * Muestra la información completa de una solicitud.
@@ -32,11 +28,13 @@ export function SolicitudDetail() {
   const { auth } = useAuth()
   const { id } = useParams()
   const [solicitud, setSolicitud] = useState<Solicitud | null>(null)
+  const [cargando, setCargando] = useState(true)
   const [estado, setEstado] = useState<EstadoSolicitud | ''>('')
   const [observacion, setObservacion] = useState('')
   const [descargando, setDescargando] = useState(false)
   const [actualizando, setActualizando] = useState(false)
   const [error, setError] = useState('')
+  const [exito, setExito] = useState('')
 
   const siguientes = useMemo(
     () => (solicitud ? TRANSICIONES[solicitud.estado] : []),
@@ -48,11 +46,16 @@ export function SolicitudDetail() {
       return
     }
 
-    api.get<Solicitud>(`/api/solicitudes/${id}`).then((response) => {
-      setSolicitud(response.data)
-      const opciones = TRANSICIONES[response.data.estado]
-      setEstado(opciones[0] ?? '')
-    })
+    setCargando(true)
+    api
+      .get<Solicitud>(`/api/solicitudes/${id}`)
+      .then((response) => {
+        setSolicitud(response.data)
+        const opciones = TRANSICIONES[response.data.estado]
+        setEstado(opciones[0] ?? '')
+      })
+      .catch(() => setError('No se pudo cargar la solicitud.'))
+      .finally(() => setCargando(false))
   }, [id])
 
   async function cambiarEstado() {
@@ -62,6 +65,7 @@ export function SolicitudDetail() {
 
     setActualizando(true)
     setError('')
+    setExito('')
     try {
       const { data } = await api.patch<Solicitud>(`/api/solicitudes/${id}/estado`, {
         estado,
@@ -71,6 +75,7 @@ export function SolicitudDetail() {
       setObservacion('')
       const opciones = TRANSICIONES[data.estado]
       setEstado(opciones[0] ?? '')
+      setExito(`Estado actualizado a «${ETIQUETA_ESTADO[data.estado]}».`)
     } catch (err) {
       if (isAxiosError(err)) {
         const detail = err.response?.data?.detail as string | undefined
@@ -99,23 +104,84 @@ export function SolicitudDetail() {
     }
   }
 
+  const volverA = auth?.rol === 'Asesor' ? '/asesor' : '/portal'
+
+  if (cargando) {
+    return (
+      <section className="page">
+        <div className="loading-block" aria-busy="true">
+          <div className="skeleton-lines">
+            <div className="skeleton-line w60" />
+            <div className="skeleton-line" />
+            <div className="skeleton-line w80" />
+          </div>
+        </div>
+      </section>
+    )
+  }
+
   if (!solicitud) {
-    return <section className="page">Cargando...</section>
+    return (
+      <section className="page">
+        <Link className="back-link" to={volverA}>
+          ← Volver
+        </Link>
+        <div className="empty">
+          <h3>Solicitud no disponible</h3>
+          <p>{error || 'No encontramos esta solicitud.'}</p>
+          <Link className="btn btn-primary" to={volverA}>
+            Ir al listado
+          </Link>
+        </div>
+      </section>
+    )
+  }
+
+  function pasoClase(paso: EstadoSolicitud): string {
+    if (!solicitud) {
+      return 'flow-step'
+    }
+
+    if (solicitud.estado === 'Rechazada') {
+      if (paso === 'Pendiente') {
+        return 'flow-step done'
+      }
+      if (paso === 'EnRevision') {
+        return 'flow-step done'
+      }
+      return 'flow-step'
+    }
+
+    const orden: EstadoSolicitud[] = ['Pendiente', 'EnRevision', 'Aprobada']
+    const actual = orden.indexOf(solicitud.estado)
+    const idx = orden.indexOf(paso)
+    if (idx < actual) {
+      return 'flow-step done'
+    }
+    if (idx === actual) {
+      return 'flow-step current'
+    }
+    return 'flow-step'
   }
 
   return (
     <section className="page">
+      <Link className="back-link" to={volverA}>
+        ← Volver al listado
+      </Link>
+
       <header className="page-header">
         <div>
-          <p className="eyebrow">Detalle</p>
+          <p className="eyebrow">Detalle de solicitud</p>
           <h1>{solicitud.nombreEstudiante}</h1>
+          <p className="support">{ETIQUETA_TIPO[solicitud.tipoApoyo]} · seguimiento del caso</p>
         </div>
         <div className="header-actions">
-          <span className={`status ${solicitud.estado}`}>{ETIQUETAS[solicitud.estado]}</span>
+          <StatusBadge estado={solicitud.estado} />
           {auth?.rol === 'Estudiante' && (
             <button
               type="button"
-              className="secondary-button"
+              className="btn-secondary"
               disabled={descargando}
               onClick={handleDescargarConstancia}
             >
@@ -124,58 +190,114 @@ export function SolicitudDetail() {
           )}
         </div>
       </header>
+
       {error && <p className="error">{error}</p>}
+      {exito && <p className="alert alert-info">{exito}</p>}
+
+      <div className="flow-steps" aria-label="Flujo de estados">
+        {FLUJO.map((paso) => (
+          <span key={paso} className={pasoClase(paso)}>
+            {ETIQUETA_ESTADO[paso]}
+          </span>
+        ))}
+        {solicitud.estado === 'Rechazada' && (
+          <span className="flow-step current">{ETIQUETA_ESTADO.Rechazada}</span>
+        )}
+      </div>
+
       <div className="detail-grid">
         <article className="panel">
-          <p>
-            <strong>Tipo:</strong> {solicitud.tipoApoyo}
-          </p>
-          <p>
-            <strong>Monto:</strong> {solicitud.montoSolicitado.toLocaleString('es-CO')}
-          </p>
-          <p>
-            <strong>Descripción:</strong> {solicitud.descripcion}
-          </p>
+          <dl className="detail-facts">
+            <div className="fact-row">
+              <dt>Tipo de apoyo</dt>
+              <dd>{ETIQUETA_TIPO[solicitud.tipoApoyo]}</dd>
+            </div>
+            <div className="fact-row">
+              <dt>Monto solicitado</dt>
+              <dd className="amount">{formatearMonto(solicitud.montoSolicitado)}</dd>
+            </div>
+            <div className="fact-row">
+              <dt>Descripción</dt>
+              <dd>{solicitud.descripcion}</dd>
+            </div>
+            <div className="fact-row">
+              <dt>Última actualización</dt>
+              <dd>{formatearFechaHora(solicitud.fechaActualizacion)}</dd>
+            </div>
+          </dl>
         </article>
+
         {auth?.rol === 'Asesor' && (
-          <aside className="panel form-panel">
+          <aside className="panel action-panel form-stack">
             <h2>Cambiar estado</h2>
             {siguientes.length === 0 ? (
-              <p>Esta solicitud ya está cerrada y no admite más cambios.</p>
+              <p className="panel-lead">
+                Esta solicitud ya está cerrada. No admite más cambios de estado.
+              </p>
             ) : (
               <>
-                <select
-                  value={estado}
-                  onChange={(event) => setEstado(event.target.value as EstadoSolicitud)}
+                <p className="panel-lead">
+                  Siguiente paso permitido según el flujo institucional.
+                </p>
+                <label>
+                  Nuevo estado
+                  <select
+                    value={estado}
+                    onChange={(event) => setEstado(event.target.value as EstadoSolicitud)}
+                  >
+                    {siguientes.map((opcion) => (
+                      <option key={opcion} value={opcion}>
+                        {ETIQUETA_ESTADO[opcion]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Observación
+                  <span className="field-hint">Opcional · visible en el historial</span>
+                  <textarea
+                    placeholder="Motivo o comentario del cambio"
+                    value={observacion}
+                    onChange={(event) => setObservacion(event.target.value)}
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={actualizando || !estado}
+                  onClick={cambiarEstado}
                 >
-                  {siguientes.map((opcion) => (
-                    <option key={opcion} value={opcion}>
-                      {ETIQUETAS[opcion]}
-                    </option>
-                  ))}
-                </select>
-                <textarea
-                  placeholder="Observación"
-                  value={observacion}
-                  onChange={(event) => setObservacion(event.target.value)}
-                />
-                <button type="button" disabled={actualizando || !estado} onClick={cambiarEstado}>
-                  {actualizando ? 'Actualizando...' : 'Actualizar'}
+                  {actualizando ? 'Actualizando...' : 'Guardar cambio'}
                 </button>
               </>
             )}
           </aside>
         )}
       </div>
+
       <section className="panel">
         <h2>Historial</h2>
-        {solicitud.historial.map((item) => (
-          <p key={item.id}>
-            {new Date(item.fechaCambio).toLocaleString('es-CO')} —{' '}
-            {item.estadoAnterior ? ETIQUETAS[item.estadoAnterior] : 'Creación'} →{' '}
-            {ETIQUETAS[item.estadoNuevo]}: {item.observacion}
-          </p>
-        ))}
+        {solicitud.historial.length === 0 ? (
+          <p className="panel-lead">Sin movimientos registrados.</p>
+        ) : (
+          <ol className="timeline">
+            {[...solicitud.historial]
+              .sort(
+                (a, b) => new Date(b.fechaCambio).getTime() - new Date(a.fechaCambio).getTime(),
+              )
+              .map((item) => (
+                <li key={item.id}>
+                  <span className="timeline-time">{formatearFechaHora(item.fechaCambio)}</span>
+                  <span className="timeline-title">
+                    {item.estadoAnterior
+                      ? `${ETIQUETA_ESTADO[item.estadoAnterior]} → ${ETIQUETA_ESTADO[item.estadoNuevo]}`
+                      : `Creación · ${ETIQUETA_ESTADO[item.estadoNuevo]}`}
+                  </span>
+                  {item.observacion && <p className="timeline-note">{item.observacion}</p>}
+                </li>
+              ))}
+          </ol>
+        )}
       </section>
     </section>
   )

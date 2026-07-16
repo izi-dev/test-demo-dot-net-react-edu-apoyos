@@ -33,16 +33,35 @@ export function StudentPortal() {
         <div>
           <p className="eyebrow">Portal estudiante</p>
           <h1>Mis solicitudes</h1>
+          <p className="support">
+            Consulta el estado de tus apoyos y descarga la constancia cuando lo necesites.
+          </p>
         </div>
-        <Link className="primary-link" to="/solicitudes/nueva">
-          Crear solicitud
+        <Link className="btn btn-primary" to="/solicitudes/nueva">
+          Nueva solicitud
         </Link>
       </header>
+
       {error && <p className="error">{error}</p>}
+
+      {!loading && !error && (
+        <div className="list-meta">
+          <span>
+            {solicitudes.length === 1
+              ? '1 solicitud registrada'
+              : `${solicitudes.length} solicitudes registradas`}
+          </span>
+        </div>
+      )}
+
       <SolicitudTable
         solicitudes={solicitudes}
         loading={loading}
         mostrarDescargaConstancia
+        emptyTitle="Aún no tienes solicitudes"
+        emptyDescription="Crea tu primera solicitud de beca, crédito o subsidio."
+        emptyActionHref="/solicitudes/nueva"
+        emptyActionLabel="Crear solicitud"
       />
     </section>
   )
