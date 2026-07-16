@@ -36,6 +36,12 @@ public sealed class DataSeeder(
             rol: RolUsuario.Estudiante,
             password: "Estudiante123*");
 
+        var usuarioEstudiante = context.Usuarios.Local
+            .FirstOrDefault(x => x.Id == estudianteUser.Id)
+            ?? await context.Usuarios.FirstAsync(
+                x => x.Id == estudianteUser.Id,
+                cancellationToken);
+
         var estudiante = await context.Estudiantes
             .Include(navigationPropertyPath: x => x.Usuario)
             .FirstOrDefaultAsync(
@@ -46,15 +52,7 @@ public sealed class DataSeeder(
         {
             estudiante = Estudiante.Crear(
                 usuarioId: estudianteUser.Id,
-                usuario: new Usuario
-                {
-                    Id = estudianteUser.Id,
-                    NombreCompleto = estudianteUser.NombreCompleto,
-                    Email = estudianteUser.Email!,
-                    PasswordHash = estudianteUser.PasswordHash ?? string.Empty,
-                    Rol = estudianteUser.Rol,
-                    FechaRegistro = estudianteUser.FechaRegistro
-                },
+                usuario: usuarioEstudiante,
                 numeroDocumento: "1000000001",
                 tipoDocumento: TipoDocumento.CedulaCiudadania,
                 programaAcademico: "Ingeniería de Software",
