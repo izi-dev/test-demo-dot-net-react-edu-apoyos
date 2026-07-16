@@ -18,11 +18,23 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddProblemDetails();
 
-// Serializar enums como texto (Asesor, Pendiente, Beca...) tal como espera el frontend.
+/*
+ * Serialización JSON de enums:
+ * JsonStringEnumConverter escribe y lee los valores enum como texto
+ * (p. ej. "Asesor", "Pendiente", "Beca") en lugar de enteros.
+ * Así el contrato HTTP coincide con lo que espera el frontend.
+ */
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
+/*
+ * CORS (política "Frontend"):
+ * Solo se permiten orígenes listados en Cors:AllowedOrigins
+ * (por defecto http://localhost:5173 para Vite).
+ * AllowAnyHeader / AllowAnyMethod habilitan preflight para la SPA.
+ * No se usan credenciales de cookie; la API autentica con Bearer JWT.
+ */
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
@@ -31,6 +43,14 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod());
 });
 
+/*
+ * Autenticación JWT Bearer:
+ * - Esquema por defecto: JwtBearer (sin cookies de Identity).
+ * - Valida emisor (iss), audiencia (aud), tiempo de vida y firma HMAC-SHA256.
+ * - Issuer, Audience y Key se leen de la sección Jwt de la configuración
+ *   (mismas opciones que usa JwtTokenGenerator al emitir tokens).
+ * - Los roles viajan en el claim ClaimTypes.Role y alimentan [Authorize(Roles = ...)].
+ */
 builder.Services
     .AddAuthentication(options =>
     {
@@ -93,4 +113,7 @@ app.UseAuthorization();
 app.MapControllers();
 app.Run();
 
+/// <summary>
+/// Clase parcial de entrada para pruebas de integración (WebApplicationFactory).
+/// </summary>
 public partial class Program;

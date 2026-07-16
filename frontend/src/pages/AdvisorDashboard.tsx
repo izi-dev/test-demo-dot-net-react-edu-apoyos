@@ -10,6 +10,16 @@ import type { PagedResult, Solicitud } from '../types'
 
 /**
  * Dashboard principal para asesores con filtros por estado y tipo de apoyo.
+ *
+ * Estado interno:
+ * - `estado` — filtro por estado de solicitud; cadena vacía significa «todos».
+ * - `tipo` — filtro por tipo de apoyo; cadena vacía significa «todos».
+ * - `data` — resultado paginado devuelto por el API.
+ * - `loading` — indica recarga de datos al cambiar filtros.
+ * - `error` — mensaje si falla la petición al API.
+ *
+ * Llamadas API:
+ * - `GET /api/solicitudes` — lista solicitudes con parámetros opcionales `estado` y `tipo`.
  */
 export function AdvisorDashboard() {
   const [estado, setEstado] = useState('')

@@ -10,6 +10,14 @@ import type { Solicitud } from '../types'
 
 /**
  * Lista las solicitudes del estudiante autenticado mediante el endpoint `/me`.
+ *
+ * Estado interno:
+ * - `solicitudes` — arreglo de solicitudes propias del estudiante.
+ * - `loading` — indica carga inicial de datos.
+ * - `error` — mensaje si falla la petición al API.
+ *
+ * Llamadas API:
+ * - `GET /api/estudiantes/me/solicitudes` — obtiene todas las solicitudes del usuario en sesión.
  */
 export function StudentPortal() {
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([])

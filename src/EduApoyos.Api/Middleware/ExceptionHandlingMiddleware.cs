@@ -5,10 +5,59 @@ using Microsoft.AspNetCore.Mvc;
 namespace EduApoyos.Api.Middleware;
 
 /// <summary>
-/// Traduce excepciones de dominio y aplicación a respuestas RFC 7807.
+/// Middleware que captura excepciones no manejadas y las traduce a respuestas
+/// <see cref="ProblemDetails"/> según RFC 7807.
 /// </summary>
+/// <remarks>
+/// Mapeo de excepciones a códigos HTTP:
+/// <list type="bullet">
+/// <item>
+/// <description>
+/// <see cref="ValidationException"/> (FluentValidation) → 400 Bad Request,
+/// con extensión <c>errors</c> agrupada por nombre de propiedad.
+/// </description>
+/// </item>
+/// <item>
+/// <description>
+/// <see cref="RecursoNoEncontradoException"/> → 404 Not Found.
+/// </description>
+/// </item>
+/// <item>
+/// <description>
+/// <see cref="AccesoRecursoDenegadoException"/> → 403 Forbidden.
+/// </description>
+/// </item>
+/// <item>
+/// <description>
+/// <see cref="TransicionEstadoInvalidaException"/> → 400 Bad Request
+/// (transición de estado de solicitud no permitida).
+/// </description>
+/// </item>
+/// <item>
+/// <description>
+/// <see cref="DomainException"/> (otras reglas de negocio) → 400 Bad Request.
+/// </description>
+/// </item>
+/// <item>
+/// <description>
+/// <see cref="UnauthorizedAccessException"/> → 401 Unauthorized.
+/// </description>
+/// </item>
+/// <item>
+/// <description>
+/// Cualquier otra excepción → 500 Internal Server Error
+/// (detalle del mensaje interno o del mensaje principal).
+/// </description>
+/// </item>
+/// </list>
+/// </remarks>
 public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
 {
+    /// <summary>
+    /// Invoca el siguiente middleware y, si ocurre una excepción, escribe el problema HTTP.
+    /// </summary>
+    /// <param name="context">Contexto HTTP de la solicitud actual.</param>
+    /// <returns>Una tarea que representa el procesamiento asíncrono.</returns>
     public async Task InvokeAsync(HttpContext context)
     {
         try
@@ -22,6 +71,12 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Ex
         }
     }
 
+    /// <summary>
+    /// Clasifica la excepción, asigna el código de estado y serializa <see cref="ProblemDetails"/>.
+    /// </summary>
+    /// <param name="context">Contexto HTTP donde se escribe la respuesta.</param>
+    /// <param name="exception">Excepción capturada en el pipeline.</param>
+    /// <returns>Una tarea que completa cuando la respuesta se ha escrito.</returns>
     private static async Task WriteProblemAsync(HttpContext context, Exception exception)
     {
         var (status, title, detail, errors) = exception switch

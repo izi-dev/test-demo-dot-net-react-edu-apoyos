@@ -11,10 +11,22 @@ using Microsoft.Extensions.DependencyInjection;
 namespace EduApoyos.Infrastructure;
 
 /// <summary>
-/// Registro de dependencias de infraestructura (persistencia, identidad, seguridad).
+/// Extensiones de registro de dependencias de la capa de infraestructura
+/// (persistencia, identidad, repositorios y seguridad JWT).
 /// </summary>
 public static class DependencyInjection
 {
+    /// <summary>
+    /// Registra el contexto EF Core, Identity (solo núcleo, sin cookies),
+    /// repositorios, unit of work, servicios de identidad/JWT y el seeder.
+    /// </summary>
+    /// <param name="services">Colección de servicios de la aplicación.</param>
+    /// <param name="configuration">Configuración desde la que se leen conexión y JWT.</param>
+    /// <returns>La misma colección de servicios para encadenar llamadas.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// Se lanza cuando no hay cadena de conexión (<c>ConnectionStrings:Default</c>
+    /// ni <c>CONNECTION_STRING</c>).
+    /// </exception>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = ResolveConnectionString(configuration)
@@ -53,6 +65,13 @@ public static class DependencyInjection
         return services;
     }
 
+    /// <summary>
+    /// Obtiene y normaliza la cadena de conexión desde configuración.
+    /// </summary>
+    /// <param name="configuration">Configuración de la aplicación.</param>
+    /// <returns>
+    /// Cadena limpia (sin comillas envolventes) o <c>null</c> si no está definida.
+    /// </returns>
     private static string? ResolveConnectionString(IConfiguration configuration)
     {
         var raw = configuration.GetConnectionString("Default")

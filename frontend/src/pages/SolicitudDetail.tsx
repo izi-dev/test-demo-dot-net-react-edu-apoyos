@@ -18,11 +18,32 @@ import {
 } from '../lib/labels'
 import type { EstadoSolicitud, Solicitud } from '../types'
 
+/**
+ * Pasos del flujo visual mostrados en la barra de progreso (excluye `Rechazada`, que se muestra aparte).
+ */
 const FLUJO: EstadoSolicitud[] = ['Pendiente', 'EnRevision', 'Aprobada']
 
 /**
  * Muestra la información completa de una solicitud.
  * Los asesores pueden cambiar el estado; los estudiantes pueden descargar la constancia.
+ *
+ * Parámetros de ruta:
+ * - `id` — identificador de la solicitud (`useParams`).
+ *
+ * Estado interno:
+ * - `solicitud` — datos completos con historial.
+ * - `cargando` — indica carga inicial.
+ * - `estado` — nuevo estado seleccionado por el asesor.
+ * - `observacion` — comentario opcional al cambiar estado.
+ * - `descargando` — descarga de constancia en curso.
+ * - `actualizando` — cambio de estado en curso.
+ * - `error` — mensaje de error de carga, actualización o descarga.
+ * - `exito` — confirmación tras actualizar el estado.
+ *
+ * Llamadas API:
+ * - `GET /api/solicitudes/{id}` — carga el detalle al montar o al cambiar `id`.
+ * - `PATCH /api/solicitudes/{id}/estado` — actualiza estado (solo Asesor); body `{ estado, observacion }`.
+ * - `descargarConstancia` — descarga constancia (solo Estudiante).
  */
 export function SolicitudDetail() {
   const { auth } = useAuth()

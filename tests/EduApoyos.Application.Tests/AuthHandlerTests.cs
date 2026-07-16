@@ -8,8 +8,15 @@ using Moq;
 
 namespace EduApoyos.Application.Tests;
 
+/// <summary>
+/// Pruebas unitarias de los handlers de autenticación (registro e inicio de sesión).
+/// Valida la generación de tokens JWT y el manejo de errores de identidad.
+/// </summary>
 public class AuthHandlerTests
 {
+    /// <summary>
+    /// Valida que un registro exitoso devuelve un token JWT con el userId y rol del usuario creado.
+    /// </summary>
     [Fact]
     public async Task RegisterHandler_UsuarioValido_RetornaToken()
     {
@@ -40,6 +47,9 @@ public class AuthHandlerTests
         Assert.Equal(RolUsuario.Estudiante, result.Rol);
     }
 
+    /// <summary>
+    /// Valida que un fallo del servicio de identidad al registrar lanza <see cref="ValidationException"/>.
+    /// </summary>
     [Fact]
     public async Task RegisterHandler_IdentityFalla_LanzaValidationException()
     {
@@ -60,6 +70,9 @@ public class AuthHandlerTests
             "María López", "maria@example.com", "Password123", RolUsuario.Estudiante)));
     }
 
+    /// <summary>
+    /// Valida que credenciales correctas en login devuelven un token JWT con el rol del usuario.
+    /// </summary>
     [Fact]
     public async Task LoginHandler_CredencialesValidas_RetornaToken()
     {
@@ -88,6 +101,9 @@ public class AuthHandlerTests
         Assert.Equal(RolUsuario.Asesor, result.Rol);
     }
 
+    /// <summary>
+    /// Valida que credenciales inválidas en login lanzan <see cref="UnauthorizedAccessException"/>.
+    /// </summary>
     [Fact]
     public async Task LoginHandler_CredencialesInvalidas_LanzaUnauthorized()
     {

@@ -7,12 +7,22 @@ namespace EduApoyos.Infrastructure.Identity;
 
 /// <summary>
 /// Adaptador de ASP.NET Core Identity hacia el puerto <see cref="IIdentityService"/>.
+/// Crea usuarios en Identity y sincroniza la entidad de dominio <see cref="Usuario"/>.
 /// </summary>
 public sealed class IdentityService(
     UserManager<ApplicationUser> userManager,
     IUsuarioRepository usuarios,
     IUnitOfWork unitOfWork) : IIdentityService
 {
+    /// <summary>
+    /// Registra un usuario en Identity, lo asigna a su rol y persiste el usuario de dominio.
+    /// </summary>
+    /// <param name="solicitud">Datos de registro (nombre, correo, contraseña y rol).</param>
+    /// <param name="cancellationToken">Token para cancelar la operación.</param>
+    /// <returns>
+    /// Resultado con el usuario autenticado mapeado si tuvo éxito,
+    /// o un diccionario de errores de Identity si falló.
+    /// </returns>
     public async Task<RegistroUsuarioResultado> RegistrarAsync(
         RegistroUsuarioSolicitud solicitud,
         CancellationToken cancellationToken = default)
@@ -59,6 +69,15 @@ public sealed class IdentityService(
             Errores: null);
     }
 
+    /// <summary>
+    /// Valida correo y contraseña contra Identity.
+    /// </summary>
+    /// <param name="email">Correo electrónico del usuario.</param>
+    /// <param name="password">Contraseña en texto plano.</param>
+    /// <param name="cancellationToken">Token para cancelar la operación.</param>
+    /// <returns>
+    /// Usuario autenticado mapeado si las credenciales son válidas; de lo contrario, <c>null</c>.
+    /// </returns>
     public async Task<UsuarioAutenticado?> AutenticarAsync(
         string email,
         string password,
@@ -73,6 +92,11 @@ public sealed class IdentityService(
         return Map(user);
     }
 
+    /// <summary>
+    /// Proyecta un <see cref="ApplicationUser"/> al DTO de aplicación <see cref="UsuarioAutenticado"/>.
+    /// </summary>
+    /// <param name="user">Usuario de Identity.</param>
+    /// <returns>Representación autenticada usada por la capa de aplicación.</returns>
     private static UsuarioAutenticado Map(ApplicationUser user) =>
         new(user.Id, user.NombreCompleto, user.Email!, user.Rol);
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Archivo auto-generado por EF Core (dotnet ef migrations). No editar a mano.
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 

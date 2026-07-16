@@ -8,7 +8,8 @@ using Microsoft.EntityFrameworkCore;
 namespace EduApoyos.Infrastructure.Persistence;
 
 /// <summary>
-/// Servicio que inserta datos iniciales de demostración cuando la base de datos está vacía.
+/// Inserta datos iniciales de demostración (roles, usuarios, estudiante y solicitud)
+/// cuando aún no existen en la base de datos.
 /// </summary>
 public sealed class DataSeeder(
     EduApoyosDbContext context,
@@ -16,9 +17,11 @@ public sealed class DataSeeder(
     RoleManager<IdentityRole<Guid>> roleManager)
 {
     /// <summary>
-    /// Garantiza la existencia de roles, usuarios de prueba, un estudiante y una solicitud de ejemplo.
+    /// Garantiza roles, usuarios de prueba, un estudiante asociado y una solicitud de ejemplo.
+    /// Es idempotente: no duplica datos si ya existen.
     /// </summary>
     /// <param name="cancellationToken">Token para cancelar la operación.</param>
+    /// <returns>Una tarea que completa cuando el seed ha finalizado.</returns>
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
         await EnsureRoleAsync(rol: RolUsuario.Asesor);
@@ -77,6 +80,10 @@ public sealed class DataSeeder(
         await context.SaveChangesAsync(cancellationToken: cancellationToken);
     }
 
+    /// <summary>
+    /// Crea el rol de Identity si aún no existe.
+    /// </summary>
+    /// <param name="rol">Rol de dominio a materializar como <see cref="IdentityRole{TKey}"/>.</param>
     private async Task EnsureRoleAsync(RolUsuario rol)
     {
         var roleName = rol.ToString();
@@ -87,6 +94,17 @@ public sealed class DataSeeder(
         }
     }
 
+    /// <summary>
+    /// Obtiene o crea un usuario de Identity y sincroniza la entidad de dominio <see cref="Usuario"/>.
+    /// </summary>
+    /// <param name="email">Correo del usuario de demostración.</param>
+    /// <param name="nombre">Nombre completo.</param>
+    /// <param name="rol">Rol de negocio.</param>
+    /// <param name="password">Contraseña inicial.</param>
+    /// <returns>El usuario de Identity existente o recién creado.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// Se lanza si Identity no puede crear el usuario (errores de validación agregados en el mensaje).
+    /// </exception>
     private async Task<ApplicationUser> EnsureUserAsync(
         string email,
         string nombre,
@@ -134,6 +152,10 @@ public sealed class DataSeeder(
         return user;
     }
 
+    /// <summary>
+    /// Inserta el espejo de dominio <see cref="Usuario"/> si aún no existe para el Identity user.
+    /// </summary>
+    /// <param name="user">Usuario de Identity ya persistido.</param>
     private async Task EnsureDomainUserAsync(ApplicationUser user)
     {
         if (await context.Usuarios.AnyAsync(

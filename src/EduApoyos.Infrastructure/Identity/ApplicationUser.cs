@@ -4,7 +4,8 @@ using Microsoft.AspNetCore.Identity;
 namespace EduApoyos.Infrastructure.Identity;
 
 /// <summary>
-/// Usuario de autenticación extendido con datos de dominio para EduApoyos.
+/// Usuario de ASP.NET Core Identity extendido con datos de dominio de EduApoyos.
+/// Comparte el mismo <see cref="IdentityUser{TKey}.Id"/> que la entidad de dominio <c>Usuario</c>.
 /// </summary>
 public sealed class ApplicationUser : IdentityUser<Guid>
 {
@@ -14,7 +15,7 @@ public sealed class ApplicationUser : IdentityUser<Guid>
     public string NombreCompleto { get; set; } = string.Empty;
 
     /// <summary>
-    /// Rol asignado al usuario en el sistema de apoyos.
+    /// Rol de negocio asignado al usuario (Asesor o Estudiante).
     /// </summary>
     public RolUsuario Rol { get; set; }
 

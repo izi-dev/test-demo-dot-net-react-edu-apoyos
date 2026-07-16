@@ -9,12 +9,36 @@ import { api } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import type { Estudiante, PagedResult, Solicitud, TipoApoyo } from '../types'
 
-/** GUID vacío enviado cuando el backend resuelve el estudiante desde el JWT. */
+/**
+ * GUID vacío enviado cuando el backend resuelve el estudiante desde el JWT del usuario en sesión.
+ */
 const ESTUDIANTE_ID_PLACEHOLDER = '00000000-0000-0000-0000-000000000000'
 
 /**
  * Permite a asesores crear solicitudes para cualquier estudiante
  * y a estudiantes crear solicitudes propias.
+ *
+ * Estado del formulario:
+ * - `estudiantes` — listado cargado solo para rol Asesor.
+ * - `cargandoEstudiantes` — indica carga del selector de estudiantes.
+ * - `estudianteId` — estudiante seleccionado (solo Asesor).
+ * - `tipoApoyo` — tipo de apoyo (`Beca`, `Credito` o `Subsidio`).
+ * - `montoSolicitado` — monto en COP como cadena del input numérico.
+ * - `descripcion` — justificación de la solicitud.
+ * - `error` — mensaje de validación o error del API.
+ * - `enviando` — indica envío en curso.
+ *
+ * Validaciones (cliente):
+ * - Monto: debe ser un número finito mayor a cero.
+ * - Descripción: mínimo 10 caracteres tras recortar espacios.
+ * - Estudiante: obligatorio si el rol es Asesor.
+ * - HTML: campos `required` en estudiante (asesor), monto y descripción.
+ *
+ * Llamadas API:
+ * - `GET /api/estudiantes` — carga estudiantes paginados (solo Asesor).
+ * - `POST /api/solicitudes` — crea la solicitud con `{ estudianteId, tipoApoyo, montoSolicitado, descripcion }`.
+ *
+ * Tras crear exitosamente navega a `/solicitudes/{id}`.
  */
 export function SolicitudForm() {
   const { auth } = useAuth()

@@ -8,19 +8,19 @@ using Microsoft.EntityFrameworkCore;
 namespace EduApoyos.Infrastructure.Persistence;
 
 /// <summary>
-/// Contexto de Entity Framework para la persistencia de entidades de EduApoyos.
-/// También implementa <see cref="IUnitOfWork"/> para coordinar transacciones.
+/// Contexto de Entity Framework Core para EduApoyos.
+/// Extiende Identity e implementa <see cref="IUnitOfWork"/> para coordinar transacciones.
 /// </summary>
 public sealed class EduApoyosDbContext(DbContextOptions<EduApoyosDbContext> options)
     : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options), IUnitOfWork
 {
     /// <summary>
-    /// Conjunto de usuarios del dominio.
+    /// Conjunto de usuarios del dominio (espejo de Identity).
     /// </summary>
     public DbSet<Usuario> Usuarios => Set<Usuario>();
 
     /// <summary>
-    /// Conjunto de estudiantes registrados.
+    /// Conjunto de perfiles de estudiante vinculados a un usuario.
     /// </summary>
     public DbSet<Estudiante> Estudiantes => Set<Estudiante>();
 
@@ -30,11 +30,14 @@ public sealed class EduApoyosDbContext(DbContextOptions<EduApoyosDbContext> opti
     public DbSet<SolicitudApoyo> SolicitudesApoyo => Set<SolicitudApoyo>();
 
     /// <summary>
-    /// Conjunto de registros de historial de cambios de estado.
+    /// Conjunto de registros del historial de cambios de estado de solicitudes.
     /// </summary>
     public DbSet<HistorialEstado> HistorialEstados => Set<HistorialEstado>();
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Configura tablas, conversiones de enums, índices y relaciones del modelo.
+    /// </summary>
+    /// <param name="builder">Constructor del modelo de EF Core.</param>
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder: builder);

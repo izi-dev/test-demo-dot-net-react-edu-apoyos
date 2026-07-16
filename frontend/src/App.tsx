@@ -15,6 +15,7 @@ import './App.css'
 
 /**
  * Redirige al panel correspondiente según el rol del usuario autenticado.
+ * Si no hay sesión, envía a `/login`.
  */
 function RoleRedirect() {
   const { auth } = useAuth()
@@ -26,6 +27,19 @@ function RoleRedirect() {
   return <Navigate to={auth.rol === 'Asesor' ? '/asesor' : '/portal'} replace />
 }
 
+/**
+ * Componente raíz que configura el proveedor de autenticación y el enrutamiento.
+ *
+ * Rutas públicas:
+ * - `/login` — formulario de inicio de sesión.
+ *
+ * Rutas protegidas (requieren JWT y rol autorizado):
+ * - `/` — redirección según rol.
+ * - `/asesor` — panel del asesor (solo `Asesor`).
+ * - `/portal` — portal del estudiante (solo `Estudiante`).
+ * - `/solicitudes/nueva` — formulario de creación (`Asesor` y `Estudiante`).
+ * - `/solicitudes/:id` — detalle de solicitud (`Asesor` y `Estudiante`).
+ */
 export default function App() {
   return (
     <AuthProvider>

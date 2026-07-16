@@ -8,6 +8,9 @@ namespace EduApoyos.Application.Features.Constancias;
 /// <summary>
 /// Consulta para generar la constancia de una solicitud del estudiante.
 /// </summary>
+/// <param name="EstudianteId">Identificador del estudiante dueño del portal.</param>
+/// <param name="SolicitudId">Identificador de la solicitud a certificar.</param>
+/// <param name="UsuarioId">Usuario autenticado; debe ser dueño de <paramref name="EstudianteId"/>.</param>
 public sealed record GenerateConstanciaQuery(
     Guid EstudianteId,
     Guid SolicitudId,
@@ -16,15 +19,40 @@ public sealed record GenerateConstanciaQuery(
 /// <summary>
 /// Resultado de la constancia en texto plano descargable.
 /// </summary>
+/// <param name="NombreArchivo">Nombre sugerido del archivo (p. ej. <c>constancia-{id}.txt</c>).</param>
+/// <param name="Contenido">Cuerpo de la constancia en texto plano.</param>
+/// <param name="ContentType">Tipo MIME; siempre <c>text/plain</c> en esta implementación.</param>
 public sealed record ConstanciaResultado(string NombreArchivo, string Contenido, string ContentType);
 
 /// <summary>
 /// Genera la constancia validando propiedad del recurso.
 /// </summary>
+/// <remarks>
+/// No tiene validator FluentValidation. Autoriza en dos niveles:
+/// (1) el usuario debe ser dueño del <c>EstudianteId</c> del portal;
+/// (2) la solicitud debe pertenecer a ese estudiante.
+/// El contenido se genera en memoria como texto plano (no PDF).
+/// </remarks>
+/// <param name="solicitudes">Puerto de lectura de solicitudes.</param>
+/// <param name="estudiantes">Puerto de resolución del perfil de estudiante.</param>
 public sealed class GenerateConstanciaQueryHandler(
     ISolicitudRepository solicitudes,
     IEstudianteRepository estudiantes) : IQueryHandler<GenerateConstanciaQuery, ConstanciaResultado>
 {
+    /// <summary>
+    /// Genera la constancia de texto plano de una solicitud autorizada.
+    /// </summary>
+    /// <param name="query">Identificadores de estudiante, solicitud y usuario.</param>
+    /// <param name="cancellationToken">Token de cancelación.</param>
+    /// <returns>
+    /// <see cref="ConstanciaResultado"/> con nombre de archivo, contenido y content-type.
+    /// </returns>
+    /// <exception cref="AccesoRecursoDenegadoException">
+    /// Si el usuario no tiene estudiante, si consulta otro portal, o si la solicitud no le pertenece.
+    /// </exception>
+    /// <exception cref="RecursoNoEncontradoException">
+    /// Si la solicitud no existe.
+    /// </exception>
     public async Task<ConstanciaResultado> HandleAsync(GenerateConstanciaQuery query, CancellationToken cancellationToken = default)
     {
         var estudiante = await estudiantes.ObtenerPorUsuarioIdAsync(query.UsuarioId, cancellationToken)

@@ -8,14 +8,22 @@ import { useAuth } from '../auth/AuthContext'
 import { AppShell } from './AppShell'
 import type { RolUsuario } from '../types'
 
+/**
+ * Props del componente {@link ProtectedRoute}.
+ */
 type ProtectedRouteProps = {
-  /** Roles permitidos para acceder a la ruta. */
+  /** Roles permitidos para acceder a la ruta. Si el rol del usuario no está incluido, redirige a `/`. */
   roles: RolUsuario[]
+  /** Contenido protegido que se envuelve con {@link AppShell} cuando la autorización es válida. */
   children: ReactNode
 }
 
 /**
  * Redirige a login si no hay sesión, o al inicio si el rol no coincide.
+ *
+ * @param props - Propiedades del componente.
+ * @param props.roles - Lista blanca de roles autorizados para la ruta actual.
+ * @param props.children - Vista hija a renderizar tras validar sesión y rol.
  */
 export function ProtectedRoute({ roles, children }: ProtectedRouteProps) {
   const { auth } = useAuth()

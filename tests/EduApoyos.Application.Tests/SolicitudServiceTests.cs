@@ -13,8 +13,15 @@ using Moq;
 
 namespace EduApoyos.Application.Tests;
 
+/// <summary>
+/// Pruebas unitarias de los handlers de solicitudes de apoyo económico.
+/// Valida creación, transiciones de estado, control de acceso, listados, constancias y filtros.
+/// </summary>
 public class SolicitudHandlerTests
 {
+    /// <summary>
+    /// Valida que crear una solicitud la deja en estado Pendiente con un único registro en el historial.
+    /// </summary>
     [Fact]
     public async Task CreateHandler_CreaSolicitudPendienteConHistorial()
     {
@@ -43,6 +50,9 @@ public class SolicitudHandlerTests
         Assert.Single(captured.Historial);
     }
 
+    /// <summary>
+    /// Valida que un cambio de estado válido (Pendiente → EnRevision) actualiza el estado y asigna el asesor.
+    /// </summary>
     [Fact]
     public async Task ChangeStatusHandler_RespetaFlujoPermitido()
     {
@@ -71,6 +81,9 @@ public class SolicitudHandlerTests
         Assert.Equal(asesorId, result.AsesorId);
     }
 
+    /// <summary>
+    /// Valida que un salto de estado no permitido (Pendiente → Aprobada) lanza <see cref="TransicionEstadoInvalidaException"/>.
+    /// </summary>
     [Fact]
     public async Task ChangeStatusHandler_FlujoInvalido_LanzaTransicionInvalida()
     {
@@ -92,6 +105,9 @@ public class SolicitudHandlerTests
             new ChangeSolicitudStatusCommand(solicitud.Id, EstadoSolicitud.Aprobada, "Salto", Guid.NewGuid())));
     }
 
+    /// <summary>
+    /// Valida que un estudiante que no es dueño de la solicitud recibe <see cref="AccesoRecursoDenegadoException"/> al consultar el detalle.
+    /// </summary>
     [Fact]
     public async Task GetByIdHandler_EstudianteAjeno_LanzaAccesoDenegado()
     {
@@ -118,6 +134,9 @@ public class SolicitudHandlerTests
             new GetSolicitudByIdQuery(solicitud.Id, Guid.NewGuid(), RolUsuario.Estudiante)));
     }
 
+    /// <summary>
+    /// Valida que un asesor puede consultar el detalle de cualquier solicitud y recibe el estado Pendiente inicial.
+    /// </summary>
     [Fact]
     public async Task GetByIdHandler_Asesor_RetornaDetalle()
     {
@@ -144,6 +163,9 @@ public class SolicitudHandlerTests
         Assert.Equal(EstadoSolicitud.Pendiente, result.Estado);
     }
 
+    /// <summary>
+    /// Valida que listar solicitudes por estudiante retorna únicamente las solicitudes de ese estudiante.
+    /// </summary>
     [Fact]
     public async Task ListByEstudianteHandler_RetornaSolicitudesPropias()
     {
@@ -175,6 +197,9 @@ public class SolicitudHandlerTests
         Assert.Equal(solicitud.Id, result.First().Id);
     }
 
+    /// <summary>
+    /// Valida que el endpoint «mis solicitudes» retorna las solicitudes del usuario autenticado.
+    /// </summary>
     [Fact]
     public async Task ListMisSolicitudesHandler_RetornaSolicitudesDelUsuario()
     {
@@ -204,6 +229,9 @@ public class SolicitudHandlerTests
         Assert.Single(result);
     }
 
+    /// <summary>
+    /// Valida que la generación de constancia produce un archivo de texto con nombre, contenido y tipo MIME correctos.
+    /// </summary>
     [Fact]
     public async Task GenerateConstanciaHandler_GeneraArchivoTexto()
     {
@@ -236,6 +264,9 @@ public class SolicitudHandlerTests
         Assert.Equal("text/plain", result.ContentType);
     }
 
+    /// <summary>
+    /// Valida que el listado paginado de solicitudes aplica correctamente los filtros por estado y tipo de apoyo.
+    /// </summary>
     [Fact]
     public async Task ListHandler_AplicaFiltrosPaginados()
     {

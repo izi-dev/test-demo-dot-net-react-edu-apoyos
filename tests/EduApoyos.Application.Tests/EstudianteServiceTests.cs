@@ -10,8 +10,15 @@ using Moq;
 
 namespace EduApoyos.Application.Tests;
 
+/// <summary>
+/// Pruebas unitarias de los handlers de estudiantes (creación y listado).
+/// Valida persistencia, errores de usuario inexistente y mapeo de resultados paginados.
+/// </summary>
 public class EstudianteHandlerTests
 {
+    /// <summary>
+    /// Valida que crear un estudiante persiste la entidad y retorna el DTO con el nombre del usuario asociado.
+    /// </summary>
     [Fact]
     public async Task CreateHandler_PersisteEstudianteYRetornaDto()
     {
@@ -44,6 +51,9 @@ public class EstudianteHandlerTests
         estudianteRepository.Verify(x => x.AgregarAsync(It.IsAny<Estudiante>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    /// <summary>
+    /// Valida que crear un estudiante con un usuario inexistente lanza <see cref="RecursoNoEncontradoException"/>.
+    /// </summary>
     [Fact]
     public async Task CreateHandler_UsuarioInexistente_LanzaRecursoNoEncontrado()
     {
@@ -62,6 +72,9 @@ public class EstudianteHandlerTests
             new CreateEstudianteCommand(Guid.NewGuid(), "1", TipoDocumento.Pasaporte, "Derecho", 2)));
     }
 
+    /// <summary>
+    /// Valida que el listado de estudiantes mapea correctamente un resultado paginado a DTOs.
+    /// </summary>
     [Fact]
     public async Task ListHandler_MapeaResultadoPaginado()
     {
