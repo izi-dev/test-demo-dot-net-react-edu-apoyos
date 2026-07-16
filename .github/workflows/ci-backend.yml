@@ -1,0 +1,47 @@
+name: CI Backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "EduApoyos.slnx"
+      - ".github/workflows/ci-backend.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "EduApoyos.slnx"
+      - ".github/workflows/ci-backend.yml"
+
+jobs:
+  build-test-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restaurar dependencias
+        run: dotnet restore EduApoyos.slnx
+
+      - name: Compilar en Release
+        run: dotnet build EduApoyos.slnx --configuration Release --no-restore
+
+      - name: Ejecutar pruebas con cobertura
+        run: dotnet test EduApoyos.slnx --configuration Release --no-build --collect:"XPlat Code Coverage"
+
+      - name: Publicar artefacto del API
+        run: dotnet publish src/EduApoyos.Api/EduApoyos.Api.csproj --configuration Release --output ./publish
+
+      - name: Subir artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: eduapoyos-api
+          path: ./publish
