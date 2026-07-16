@@ -1,0 +1,279 @@
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(340px, 0.8fr);
+  background:
+    radial-gradient(circle at 20% 20%, rgba(28, 103, 88, 0.22), transparent 34%),
+    linear-gradient(135deg, #eef7f2 0%, #f8fbff 52%, #e6eef5 100%);
+}
+
+.login-hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 8vw;
+}
+
+.login-hero h1 {
+  font-size: clamp(4rem, 10vw, 8rem);
+  letter-spacing: -0.08em;
+  margin: 0;
+}
+
+.login-hero p:last-child {
+  max-width: 560px;
+  font-size: 1.2rem;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.76rem;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(226, 242, 237, 0.8), transparent 360px),
+    var(--surface);
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px clamp(18px, 5vw, 64px);
+  background: rgba(248, 251, 255, 0.88);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--line);
+}
+
+.brand {
+  font-family: var(--display);
+  font-size: 1.6rem;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.nav-links {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.nav-links a,
+.link-button,
+.primary-link {
+  color: var(--green);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.link-button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.page {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 48px 0 80px;
+}
+
+.narrow {
+  max-width: 720px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-end;
+  margin-bottom: 28px;
+}
+
+.page h1 {
+  margin: 0;
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  letter-spacing: -0.06em;
+}
+
+.panel {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid var(--line);
+  box-shadow: 0 18px 60px rgba(33, 55, 72, 0.08);
+  padding: 24px;
+}
+
+.form-panel {
+  display: grid;
+  gap: 18px;
+  align-self: center;
+  margin: auto min(8vw, 96px) auto 0;
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--line);
+  background: white;
+  color: var(--ink);
+  padding: 12px 14px;
+  font: inherit;
+}
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+button,
+.primary-link {
+  border: 0;
+  background: var(--green);
+  color: white;
+  padding: 12px 18px;
+  cursor: pointer;
+}
+
+.primary-link {
+  display: inline-flex;
+  align-items: center;
+}
+
+.demo-users,
+.filters,
+.detail-grid {
+  display: flex;
+  gap: 16px;
+}
+
+.detail-grid {
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.detail-grid > * {
+  flex: 1;
+}
+
+.demo-users button {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--green);
+}
+
+.secondary-button {
+  border: 1px solid var(--line);
+  background: white;
+  color: var(--green);
+  padding: 8px 14px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.table-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.error {
+  color: #a83232;
+}
+
+.empty {
+  padding: 32px;
+  background: white;
+  border: 1px dashed var(--line);
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  background: white;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+th {
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.status {
+  display: inline-flex;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  font-size: 0.86rem;
+}
+
+.Aprobada {
+  color: #116149;
+  background: #e7f6ef;
+}
+
+.Rechazada {
+  color: #9b2f2f;
+  background: #fbeaea;
+}
+
+.EnRevision {
+  color: #7b5716;
+  background: #fff3cf;
+}
+
+@media (max-width: 780px) {
+  .login-page {
+    grid-template-columns: 1fr;
+  }
+
+  .form-panel {
+    margin: 0 18px 32px;
+  }
+
+  .page-header,
+  .detail-grid,
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
