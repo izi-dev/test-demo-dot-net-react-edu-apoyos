@@ -4,6 +4,20 @@ Sistema web para gestionar solicitudes de apoyo económico (becas, créditos y s
 
 Monorepo con **.NET 8** (Clean Architecture) y **React + Vite**, con Docker Compose para ejecución local y PostgreSQL.
 
+## Demo en línea
+
+Aplicación desplegada:
+
+- **Frontend:** [https://fvargas.dezeo.cloud/](https://fvargas.dezeo.cloud/)
+- **API (login):** `https://fvargas.dezeo.cloud/api/auth/login`
+
+Credenciales de prueba (mismas del seed):
+
+| Rol | Correo | Contraseña |
+|-----|--------|------------|
+| Asesor | `asesor@educapoyos.local` | `Asesor123*` |
+| Estudiante | `estudiante@educapoyos.local` | `Estudiante123*` |
+
 ## Stack
 
 | Componente | Tecnología |
