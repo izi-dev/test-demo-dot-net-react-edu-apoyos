@@ -12,6 +12,7 @@ Aplicación desplegada:
 - **Sobre mí:** [https://fvargas.dezeo.cloud/login#sobre-mi](https://fvargas.dezeo.cloud/login#sobre-mi)
 - **Swagger (API):** [https://fvargas.dezeo.cloud/swagger/index.html](https://fvargas.dezeo.cloud/swagger/index.html)
 - **API (login):** `https://fvargas.dezeo.cloud/api/auth/login`
+- **CI (GitHub Actions):** [https://github.com/izi-dev/test-demo-dot-net-react-edu-apoyos/actions](https://github.com/izi-dev/test-demo-dot-net-react-edu-apoyos/actions)
 
 Credenciales de prueba (mismas del seed):
 
@@ -214,6 +215,8 @@ GitHub Actions en `.github/workflows/`:
 
 - `ci-backend.yml`: `restore` → `build` (Release) → `test` (con cobertura) → `publish` (artefacto del API).
 - `ci-frontend.yml`: `npm ci` → `lint` → `build`.
+
+Historial de ejecuciones: [https://github.com/izi-dev/test-demo-dot-net-react-edu-apoyos/actions](https://github.com/izi-dev/test-demo-dot-net-react-edu-apoyos/actions)
 
 ## Decisiones relevantes y pendientes
 
