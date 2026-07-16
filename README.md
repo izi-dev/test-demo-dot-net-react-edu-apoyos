@@ -9,7 +9,8 @@ Monorepo con **.NET 8** (Clean Architecture) y **React + Vite**, con Docker Comp
 Aplicación desplegada:
 
 - **Frontend:** [https://fvargas.dezeo.cloud/](https://fvargas.dezeo.cloud/)
-- **Swagger (API):** [https://fvargas.dezeo.cloud/swagger](https://fvargas.dezeo.cloud/swagger)
+- **Sobre el autor:** [https://fvargas.dezeo.cloud/login#sobre-mi](https://fvargas.dezeo.cloud/login#sobre-mi)
+- **Swagger (API):** [https://fvargas.dezeo.cloud/swagger/index.html](https://fvargas.dezeo.cloud/swagger/index.html)
 - **API (login):** `https://fvargas.dezeo.cloud/api/auth/login`
 
 Credenciales de prueba (mismas del seed):
