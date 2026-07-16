@@ -87,7 +87,7 @@ export function LoginPage() {
             <span>Constancias descargables</span>
           </div>
           <a className="hero-about-link" href="#sobre-mi">
-            Sobre el autor →
+            Sobre mí →
           </a>
         </section>
 
