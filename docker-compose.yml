@@ -13,9 +13,6 @@ services:
       Cors__AllowedOrigins__0: ${FRONTEND_ORIGIN:-http://localhost:8080}
     ports:
       - "${API_PORT:-5000}:8080"
-    networks:
-      - default
-      - database
     restart: unless-stopped
 
   frontend:
@@ -28,11 +25,9 @@ services:
       - api
     ports:
       - "${FRONTEND_PORT:-8080}:80"
-    networks:
-      - default
     restart: unless-stopped
 
-  # Solo para desarrollo local: docker compose --profile local up --build
+  # Solo desarrollo local: docker compose --profile local up --build
   postgres:
     image: postgres:16-alpine
     profiles: ["local"]
@@ -44,16 +39,7 @@ services:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - educapoyos-postgres:/var/lib/postgresql/data
-    networks:
-      - default
     restart: unless-stopped
-
-networks:
-  # Red de tu PostgreSQL externo (misma red donde corre el contenedor de la DB).
-  # Sin esto, Isolated Deployment deja al API en una red propia y no resuelve el Host.
-  database:
-    external: true
-    name: ${POSTGRES_NETWORK:?Define POSTGRES_NETWORK con el nombre de red del contenedor PostgreSQL}
 
 volumes:
   educapoyos-postgres:
